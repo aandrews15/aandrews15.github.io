@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pomodoro</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a12;
+      --surface: rgba(255,255,255,0.05);
+      --border: rgba(255,255,255,0.12);
+      --text: #ffffff;
+      --muted: rgba(255,255,255,0.4);
+      --ring-size: 260px;
+      /* rainbow gradient stops */
+      --r1: #ff4d6d;
+      --r2: #ff9a3c;
+      --r3: #ffe156;
+      --r4: #5cff8a;
+      --r5: #3cf0ff;
+      --r6: #a78bfa;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Animated rainbow background blobs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.18;
+      pointer-events: none;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+    body::before {
+      width: 600px; height: 600px;
+      top: -150px; left: -150px;
+      background: conic-gradient(var(--r1), var(--r2), var(--r3), var(--r4), var(--r5), var(--r6), var(--r1));
+    }
+    body::after {
+      width: 500px; height: 500px;
+      bottom: -120px; right: -120px;
+      background: conic-gradient(var(--r4), var(--r5), var(--r6), var(--r1), var(--r2), var(--r3), var(--r4));
+      animation-direction: alternate-reverse;
+    }
+    @keyframes drift {
+      0%   { transform: translate(0,0) scale(1); }
+      100% { transform: translate(60px,40px) scale(1.15); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+    }
+
+    /* ── Mode tabs ── */
+    .mode-tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px;
+      backdrop-filter: blur(12px);
+    }
+
+    .mode-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 7px 18px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.25s;
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, var(--r1), var(--r2), var(--r3));
+      background-size: 200% 200%;
+      animation: gradShift 4s ease infinite;
+      color: #000;
+      font-weight: 500;
+    }
+    .mode-btn[data-mode="short"].active {
+      background: linear-gradient(135deg, var(--r3), var(--r4), var(--r5));
+    }
+    .mode-btn[data-mode="long"].active {
+      background: linear-gradient(135deg, var(--r5), var(--r6), var(--r1));
+    }
+
+    @keyframes gradShift {
+      0%,100% { background-position: 0% 50%; }
+      50%      { background-position: 100% 50%; }
+    }
+
+    /* ── SVG Ring ── */
+    .ring-wrapper {
+      position: relative;
+      width: var(--ring-size);
+      height: var(--ring-size);
+    }
+
+    .ring-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .ring-track {
+      fill: none;
+      stroke: rgba(255,255,255,0.08);
+      stroke-width: 6;
+    }
+
+    /* rainbow conic ring via SVG gradient */
+    .ring-progress {
+      fill: none;
+      stroke: url(#rainbowGrad);
+      stroke-width: 6;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear;
+      filter: drop-shadow(0 0 6px rgba(255,255,255,0.35));
+    }
+
+    /* Spinning glow halo */
+    .ring-halo {
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      background: conic-gradient(
+        var(--r1) 0deg,
+        var(--r2) 60deg,
+        var(--r3) 120deg,
+        var(--r4) 180deg,
+        var(--r5) 240deg,
+        var(--r6) 300deg,
+        var(--r1) 360deg
+      );
+      opacity: 0;
+      filter: blur(14px);
+      transition: opacity 0.6s;
+      animation: spin 6s linear infinite;
+      pointer-events: none;
+    }
+    .ring-halo.active { opacity: 0.3; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .time-display {
+      font-family: 'Playfair Display', serif;
+      font-size: 64px;
+      font-weight: 700;
+      letter-spacing: -2px;
+      line-height: 1;
+      background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .session-label {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, var(--r1), var(--r3), var(--r5));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      background-size: 200%;
+      animation: gradShift 3s ease infinite;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-main {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 14px 52px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      position: relative;
+      color: #000;
+      font-weight: 500;
+      background: linear-gradient(135deg, var(--r1) 0%, var(--r2) 30%, var(--r3) 55%, var(--r4) 75%, var(--r5) 90%, var(--r6) 100%);
+      background-size: 250% 250%;
+      animation: gradShift 5s ease infinite;
+      box-shadow: 0 0 24px rgba(255,100,100,0.25), 0 0 0 1px rgba(255,255,255,0.08);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-main:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 36px rgba(255,150,100,0.4), 0 0 0 1px rgba(255,255,255,0.15);
+    }
+    .btn-main:active { transform: scale(0.97); }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--surface);
+      backdrop-filter: blur(8px);
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .btn-icon:hover {
+      border-color: rgba(255,255,255,0.4);
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* ── Session dots ── */
+    .session-dots {
+      display: flex;
+      gap: 10px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.15);
+      transition: background 0.4s, transform 0.3s;
+    }
+
+    .dot.done {
+      background: linear-gradient(135deg, var(--r1), var(--r3));
+      border-color: transparent;
+      transform: scale(1.2);
+      box-shadow: 0 0 8px rgba(255,160,60,0.5);
+    }
+
+    /* ── Settings ── */
+    .settings {
+      display: flex;
+      gap: 24px;
+      padding: 18px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      backdrop-filter: blur(12px);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .setting-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .setting-group label {
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-size: 10px;
+      background: linear-gradient(90deg, var(--r5), var(--r6));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .setting-group input {
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      width: 56px;
+      text-align: center;
+      padding: 6px 4px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 3px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .setting-group input:focus {
+      border-color: rgba(255,255,255,0.4);
+    }
+
+    /* ── Flash on complete ── */
+    @keyframes flash {
+      0%,100% { opacity: 1; }
+      40%      { opacity: 0.1; }
+    }
+    .flash { animation: flash 0.45s ease 3; }
+
+    /* ── Confetti burst ── */
+    .confetti-piece {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 999;
+      animation: confettiFall 1.2s ease-in forwards;
+    }
+    @keyframes confettiFall {
+      0%   { transform: translate(0,0) rotate(0deg) scale(1); opacity: 1; }
+      100% { transform: translate(var(--dx), var(--dy)) rotate(var(--dr)) scale(0.4); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Mode selector -->
+  <div class="mode-tabs">
+    <button class="mode-btn active" data-mode="work">Focus</button>
+    <button class="mode-btn" data-mode="short">Short Break</button>
+    <button class="mode-btn" data-mode="long">Long Break</button>
+  </div>
+
+  <!-- Ring timer -->
+  <div class="ring-wrapper">
+    <div class="ring-halo" id="halo"></div>
+    <svg class="ring-svg" viewBox="0 0 260 260">
+      <defs>
+        <linearGradient id="rainbowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stop-color="#ff4d6d"/>
+          <stop offset="20%"  stop-color="#ff9a3c"/>
+          <stop offset="40%"  stop-color="#ffe156"/>
+          <stop offset="60%"  stop-color="#5cff8a"/>
+          <stop offset="80%"  stop-color="#3cf0ff"/>
+          <stop offset="100%" stop-color="#a78bfa"/>
+        </linearGradient>
+      </defs>
+      <circle class="ring-track" cx="130" cy="130" r="118"/>
+      <circle class="ring-progress" id="ring" cx="130" cy="130" r="118"/>
+    </svg>
+    <div class="ring-center">
+      <div class="time-display" id="display">25:00</div>
+      <div class="session-label" id="session-label">Focus</div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="btn-icon" id="btn-reset" title="Reset">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/>
+      </svg>
+    </button>
+    <button class="btn-main" id="btn-start">Start</button>
+    <button class="btn-icon" id="btn-skip" title="Skip">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Session dots -->
+  <div class="session-dots" id="dots"></div>
+
+  <!-- Settings -->
+  <div class="settings">
+    <div class="setting-group">
+      <label>Focus</label>
+      <input type="number" id="set-work" value="25" min="1" max="99"/>
+    </div>
+    <div class="setting-group">
+      <label>Short Break</label>
+      <input type="number" id="set-short" value="5" min="1" max="99"/>
+    </div>
+    <div class="setting-group">
+      <label>Long Break</label>
+      <input type="number" id="set-long" value="15" min="1" max="99"/>
+    </div>
+    <div class="setting-group">
+      <label>Sessions</label>
+      <input type="number" id="set-sessions" value="4" min="1" max="12"/>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const MODES = {
+    work:  { label: 'Focus',       settingId: 'set-work'  },
+    short: { label: 'Short Break', settingId: 'set-short' },
+    long:  { label: 'Long Break',  settingId: 'set-long'  },
+  };
+
+  let mode = 'work', running = false, intervalId = null;
+  let totalSecs = 0, remainSecs = 0, sessionsCompleted = 0;
+
+  const display      = document.getElementById('display');
+  const sessionLabel = document.getElementById('session-label');
+  const btnStart     = document.getElementById('btn-start');
+  const btnReset     = document.getElementById('btn-reset');
+  const btnSkip      = document.getElementById('btn-skip');
+  const ring         = document.getElementById('ring');
+  const halo         = document.getElementById('halo');
+  const dotsEl       = document.getElementById('dots');
+  const modeBtns     = document.querySelectorAll('.mode-btn');
+
+  const RADIUS = 118;
+  const CIRC   = 2 * Math.PI * RADIUS;
+  ring.style.strokeDasharray  = CIRC;
+  ring.style.strokeDashoffset = 0;
+
+  function getMins(id) { return Math.max(1, parseInt(document.getElementById(id).value) || 1); }
+  function getMaxSessions() { return Math.max(1, parseInt(document.getElementById('set-sessions').value) || 4); }
+
+  function updateDisplay() {
+    const m = String(Math.floor(remainSecs / 60)).padStart(2, '0');
+    const s = String(remainSecs % 60).padStart(2, '0');
+    display.textContent = `${m}:${s}`;
+    document.title = `${m}:${s} — Pomodoro`;
+    ring.style.strokeDashoffset = CIRC * (1 - remainSecs / totalSecs);
+  }
+
+  function buildDots() {
+    const max = getMaxSessions();
+    dotsEl.innerHTML = '';
+    for (let i = 0; i < max; i++) {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i < sessionsCompleted ? ' done' : '');
+      dotsEl.appendChild(d);
+    }
+  }
+
+  function loadMode(m) {
+    mode = m;
+    sessionLabel.textContent = MODES[m].label;
+    totalSecs  = getMins(MODES[m].settingId) * 60;
+    remainSecs = totalSecs;
+    ring.style.strokeDashoffset = 0;
+    updateDisplay();
+    modeBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  }
+
+  function stopTimer() {
+    clearInterval(intervalId); intervalId = null; running = false;
+    btnStart.textContent = 'Start';
+    halo.classList.remove('active');
+  }
+
+  function startTimer() {
+    running = true;
+    btnStart.textContent = 'Pause';
+    halo.classList.add('active');
+    intervalId = setInterval(() => {
+      if (remainSecs <= 0) { stopTimer(); onTimerEnd(); return; }
+      remainSecs--;
+      updateDisplay();
+    }, 1000);
+  }
+
+  function spawnConfetti() {
+    const colors = ['#ff4d6d','#ff9a3c','#ffe156','#5cff8a','#3cf0ff','#a78bfa'];
+    for (let i = 0; i < 40; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+      el.style.left = cx + 'px';
+      el.style.top  = cy + 'px';
+      el.style.background = colors[Math.floor(Math.random() * colors.length)];
+      const angle = Math.random() * 2 * Math.PI;
+      const dist  = 80 + Math.random() * 180;
+      el.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+      el.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+      el.style.setProperty('--dr', (Math.random() * 720 - 360) + 'deg');
+      document.body.appendChild(el);
+      el.addEventListener('animationend', () => el.remove());
+    }
+  }
+
+  function onTimerEnd() {
+    display.classList.add('flash');
+    display.addEventListener('animationend', () => display.classList.remove('flash'), { once: true });
+    spawnConfetti();
+
+    try {
+      const ctx = new AudioContext();
+      [0, 0.18, 0.36].forEach(offset => {
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 660;
+        gain.gain.setValueAtTime(0.28, ctx.currentTime + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.14);
+        osc.start(ctx.currentTime + offset);
+        osc.stop(ctx.currentTime + offset + 0.16);
+      });
+    } catch(e) {}
+
+    if (mode === 'work') {
+      sessionsCompleted++;
+      buildDots();
+      const max = getMaxSessions();
+      const nextMode = sessionsCompleted >= max ? 'long' : 'short';
+      if (sessionsCompleted >= max) sessionsCompleted = 0;
+      setTimeout(() => loadMode(nextMode), 400);
+    } else {
+      setTimeout(() => loadMode('work'), 400);
+    }
+  }
+
+  btnStart.addEventListener('click', () => running ? stopTimer() : startTimer());
+  btnReset.addEventListener('click', () => { stopTimer(); loadMode(mode); });
+  btnSkip.addEventListener('click',  () => { stopTimer(); onTimerEnd(); });
+
+  modeBtns.forEach(btn => btn.addEventListener('click', () => { stopTimer(); loadMode(btn.dataset.mode); }));
+
+  ['set-work','set-short','set-long','set-sessions'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => {
+      if (!running) loadMode(mode);
+      buildDots();
+    });
+  });
+
+  loadMode('work');
+  buildDots();
+</script>
+</body>
+</html>
