@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unicorn Rainbow Party!</title>
+    <style>
+        :root {
+            /* Dreamy Pastel Rainbow Palette */
+            --bg-gradient: radial-gradient(circle at 50% 50%, #fef08a 0%, #fbcfe8 40%, #e0e7ff 100%);
+            --card-bg: rgba(255, 255, 255, 0.45);
+            --card-border: rgba(255, 255, 255, 0.6);
+            --text-primary: #4c1d95; /* Deep Royal Purple */
+            --text-secondary: #6d28d9;
+            
+            /* Unicorn Rainbow Gradient Accent */
+            --primary-gradient: linear-gradient(135deg, #ff007f 0%, #ff7300 20%, #e6fb04 40%, #00ffd5 60%, #002bff 80%, #7f00ff 100%);
+            --btn-bg: linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #6366f1 100%);
+            --focus-ring: #db2777;
+            
+            --shadow-premium: 0 20px 40px -15px rgba(76, 29, 149, 0.25), 0 15px 15px -10px rgba(76, 29, 149, 0.15);
+            --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- BASIC RESET & PREPARATIONS --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-gradient);
+            background-size: 400% 400%;
+            animation: fluidBg 15s ease infinite;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* Background animated rainbow waves */
+        @keyframes fluidBg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- GLOWING GLASS CARD --- */
+        .celebration-card {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid var(--card-border);
+            border-radius: 32px;
+            padding: 3rem 2.25rem;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: var(--shadow-premium);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .celebration-card:hover {
+            border-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 30px 50px -10px rgba(76, 29, 149, 0.35);
+        }
+
+        /* Animated Sparkles in Card Background */
+        .sparkle-icon {
+            position: absolute;
+            font-size: 1.5rem;
+            opacity: 0.7;
+            pointer-events: none;
+            animation: spinAndPulse 4s infinite linear;
+        }
+        .sp-1 { top: 15px; left: 20px; animation-delay: 0s; }
+        .sp-2 { bottom: 20px; right: 25px; animation-delay: 2s; }
+
+        @keyframes spinAndPulse {
+            0% { transform: rotate(0deg) scale(0.8); opacity: 0.3; }
+            50% { transform: rotate(180deg) scale(1.3); opacity: 0.8; }
+            100% { transform: rotate(360deg) scale(0.8); opacity: 0.3; }
+        }
+
+        /* --- TYPOGRAPHY --- */
+        .celebration-icon {
+            font-size: 4.5rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            animation: floatingUnicorn 3.5s infinite ease-in-out;
+            filter: drop-shadow(0 10px 15px rgba(236, 72, 153, 0.3));
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            line-height: 1.15;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ec4899, #8b5cf6, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.03em;
+        }
+
+        p {
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            margin-bottom: 2.25rem;
+            font-weight: 500;
+            padding: 0 10px;
+        }
+
+        /* --- RAINBOW UNICORN BUTTON --- */
+        .celebration-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.85rem;
+            width: 100%;
+            padding: 1.25rem 2.25rem;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #ffffff;
+            background: var(--btn-bg);
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.4), 0 8px 10px -6px rgba(99, 102, 241, 0.4);
+            transition: var(--transition-smooth);
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+        }
+
+        /* Continuous rainbow trace overlay on button hover */
+        .celebration-btn::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: var(--primary-gradient);
+            z-index: -1;
+            border-radius: 22px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .celebration-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(236, 72, 153, 0.5), 0 10px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .celebration-btn:hover::before {
+            opacity: 1;
+        }
+
+        .celebration-btn:active {
+            transform: translateY(1px) scale(0.98);
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+        }
+
+        /* Focus Ring Style for Accessible Keyboard Navigation */
+        .celebration-btn:focus-visible {
+            outline: 4px solid var(--focus-ring);
+            outline-offset: 4px;
+        }
+
+        /* Helper instructions */
+        .keyboard-tip {
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: #7c3aed;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            opacity: 0.8;
+        }
+
+        .kbd-key {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 6px;
+            padding: 0.15rem 0.5rem;
+            font-family: monospace;
+            font-size: 0.75rem;
+            box-shadow: 0 2px 0 rgba(124, 58, 237, 0.2);
+        }
+
+        /* Accessibility: Screen-reader-only utility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* --- FLOATING ANIMATIONS --- */
+        @keyframes floatingUnicorn {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(-12px) rotate(5deg); }
+        }
+
+        /* Fallbacks for user motion reduction preference */
+        @media (prefers-reduced-motion: reduce) {
+            body {
+                animation: none;
+            }
+            .celebration-icon {
+                animation: none;
+            }
+            .sparkle-icon {
+                animation: none;
+            }
+            .celebration-card, .celebration-btn {
+                transition: none;
+                transform: none !important;
+            }
+        }
+
+        /* Mobile adaptation tweaks */
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem;
+            }
+            .celebration-card {
+                padding: 2.25rem 1.5rem;
+                border-radius: 24px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            p {
+                font-size: 1rem;
+                margin-bottom: 1.75rem;
+            }
+            .celebration-btn {
+                padding: 1.1rem 1.75rem;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+    <!-- MODERN VERSION OF CANVAS CONFETTI SUPPORTING TEXT/EMOJI SHAPES -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+    <main class="celebration-card" role="region" aria-labelledby="card-title">
+        <!-- Magic floating background sparkle glyphs -->
+        <div class="sparkle-icon sp-1" aria-hidden="true">✨</div>
+        <div class="sparkle-icon sp-2" aria-hidden="true">💖</div>
+        
+        <div class="celebration-icon" id="app-emoji" aria-hidden="true">🦄</div>
+        
+        <h1 id="card-title"></h1>
+        <p id="card-description"></p>
+        
+        <button id="celebrate-btn" class="celebration-btn" aria-live="polite" type="button">
+            <span id="btn-text"></span>
+        </button>
+
+        <div class="keyboard-tip" id="kbd-tip-container">
+            Press <span class="kbd-key">Space</span> or <span class="kbd-key">Enter</span> for Magic!
+        </div>
+    </main>
+
+    <!-- Invisible ARIA live announcer status block -->
+    <div id="sr-announcer" class="sr-only" aria-live="assertive" role="status"></div>
+
+    <script>
+        // =========================================================================
+        // CONFIGURABLE CONTENT & PARTICLES
+        // =========================================================================
+        const CONFIG = {
+            title: "Magical Success!",
+            description: "You did something absolutely wonderful. Trigger the button below to summon an amazing swarm of rainbow unicorn heads!",
+            buttonText: "Summon Unicorns! 🦄",
+            headerEmoji: "🦄",
+            
+            // Customize your Unicorn Cannon physical launch parameters
+            confettiConfig: {
+                particleCount: 80,      // Number of floating unicorns launched per click
+                spread: 120,             // Dispersion spread angle (degrees)
+                originY: 0.60,           // Vertical point of launch (0.0=Top, 1.0=Bottom)
+                scalar: 3.5,             // Size scalar of unicorn heads (Recommended: 3 to 4.5)
+                drift: 0                 // Constant sideways breeze drift force (0 = none)
+            },
+
+            // Accessibility screen-reader description of the physical event
+            accessibilityNotification: "Magical explosion initiated! Gorgeous rainbow unicorn emojis are flying across your entire screen."
+        };
+
+        // =========================================================================
+        // CORE APPLICATION CONTROLLER
+        // =========================================================================
+        const titleElement = document.getElementById('card-title');
+        const descElement = document.getElementById('card-description');
+        const buttonTextElement = document.getElementById('btn-text');
+        const headerEmojiElement = document.getElementById('app-emoji');
+        const mainButton = document.getElementById('celebrate-btn');
+        const accessibilityAnnouncer = document.getElementById('sr-announcer');
+
+        // Dynamic Text Ingestion
+        function setupApplication() {
+            titleElement.textContent = CONFIG.title;
+            descElement.textContent = CONFIG.description;
+            buttonTextElement.textContent = CONFIG.buttonText;
+            headerEmojiElement.textContent = CONFIG.headerEmoji;
+        }
+
+        /**
+         * Built-in zero-dependency browser synthesizer that plays a triumphant brass fanfare flourish
+         */
+        function playFanfareSound() {
+            try {
+                // Initialize clean browser audio context
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+
+                // Help generate a brass-like instrument voice
+                function playNote(freq, startTime, duration, volume = 0.12) {
+                    const osc1 = ctx.createOscillator();
+                    const osc2 = ctx.createOscillator();
+                    const gainNode = ctx.createGain();
+                    const filter = ctx.createBiquadFilter();
+
+                    // Mixing sawtooth (bright buzz) and triangle (warm core) for a brass trumpet texture
+                    osc1.type = 'sawtooth';
+                    osc2.type = 'triangle';
+                    
+                    osc1.frequency.setValueAtTime(freq, startTime);
+                    // Slight detune for a richer, ensemble-like chorusing effect
+                    osc2.frequency.setValueAtTime(freq * 1.004, startTime);
+
+                    // High frequency sweep to simulate a trumpet's initial lip-buzz brightness
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(1600, startTime);
+                    filter.frequency.exponentialRampToValueAtTime(750, startTime + duration);
+
+                    // Trumpet-style envelope: snappy attack, stable sustain, exponential release
+                    gainNode.gain.setValueAtTime(0, startTime);
+                    gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.04);
+                    gainNode.gain.setValueAtTime(volume, startTime + duration - 0.05);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+                    osc1.connect(filter);
+                    osc2.connect(filter);
+                    filter.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+
+                    osc1.start(startTime);
+                    osc2.start(startTime);
+                    osc1.stop(startTime + duration);
+                    osc2.stop(startTime + duration);
+                }
+
+                const now = ctx.currentTime;
+                
+                // Triumphant Fanfare Sequence: "Ta-da-da-DAAAH!"
+                playNote(261.63, now, 0.11);        // C4 (short)
+                playNote(329.63, now + 0.11, 0.11); // E4 (short)
+                playNote(392.00, now + 0.22, 0.11); // G4 (short)
+                
+                // Culminating glorious C Major sustained chord
+                playNote(523.25, now + 0.33, 0.85, 0.08);  // C5 (Triumphant lead)
+                playNote(659.25, now + 0.33, 0.85, 0.06);  // E5
+                playNote(783.99, now + 0.33, 0.85, 0.06);  // G5
+                playNote(1046.50, now + 0.33, 0.85, 0.04); // C6 (High sparkle octave)
+
+            } catch (error) {
+                console.warn("Web Audio API not supported or interaction blocked:", error);
+            }
+        }
+
+        /**
+         * Generates the custom canvas-confetti emoji-based launch sequence
+         */
+        function handleCelebration() {
+            // Instantiate canvas-confetti shape configuration for unicorn emojis
+            const unicornShape = confetti.shapeFromText({
+                text: '🦄',
+                scalar: CONFIG.confettiConfig.scalar
+            });
+
+            // Trigger the native canvas particles using the newly created custom shape
+            confetti({
+                particleCount: CONFIG.confettiConfig.particleCount,
+                spread: CONFIG.confettiConfig.spread,
+                origin: { y: CONFIG.confettiConfig.originY },
+                shapes: [unicornShape],
+                scalar: CONFIG.confettiConfig.scalar,
+                drift: CONFIG.confettiConfig.drift,
+                disableForReducedMotion: true // Automatically adheres to device safety profiles
+            });
+
+            // Trigger synthesized brass fanfare audio response
+            playFanfareSound();
+
+            // Notify Screen Reader assistive devices of visual activity
+            accessibilityAnnouncer.textContent = "";
+            setTimeout(() => {
+                accessibilityAnnouncer.textContent = CONFIG.accessibilityNotification;
+            }, 50);
+        }
+
+        // Action Trigger hook
+        mainButton.addEventListener('click', handleCelebration);
+
+        // Bootstrap elements on document load completion
+        document.addEventListener('DOMContentLoaded', setupApplication);
+    </script>
+</body>
+</html>
